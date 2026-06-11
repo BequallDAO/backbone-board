@@ -79,6 +79,25 @@ Key semantics:
 - **workflow_define + program_create** add domain runtimes with zero schema changes
   (the fourth-program test, PRD §4).
 
+## Board (the human UI)
+
+**URL: https://buildwithbequall.github.io/backbone-board/** — three views per PRD §6:
+`#decisions` (phone-first queue, one-tap resolve), `#board` (tasks by state, unclaimed
+queue, cron health, programs), `#task/<id>` (timeline, deliverables, claim history),
+plus `#pulse` (today's events + shipped deliverables).
+
+Architecture: static shell on GitHub Pages (`BuildWithBequall/backbone-board`, zero
+secrets; canonical source `board/index.html`) + the `board` edge function as a
+CORS-enabled data API. *.supabase.co refuses to serve HTML (anti-phishing), which is
+why the shell lives on Pages; the function's GET redirects there.
+
+Auth: per-human access tokens in `app_config` (`board_token_jack`, `board_token_scott`;
+plaintext copies in `.keys/board-token-*.txt`). First visit: open
+`.../backbone-board/?token=<token>` once — it's stored in localStorage and stripped
+from the URL. The only mutation the board can make is `decision_resolve`, recorded
+with the human's name; reads go through the `board` service agent. Add a human:
+insert `board_token_<name>` into `app_config`. Revoke: delete the row.
+
 ## Notifier + degraded mode
 
 `events` insert → trigger `_notify_event()` (pg_net) → `notifier` edge function → Slack

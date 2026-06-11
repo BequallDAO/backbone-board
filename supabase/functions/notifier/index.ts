@@ -37,8 +37,8 @@ function trunc(s: unknown, n = 120): string {
 
 function format(e: BackboneEvent, boardUrl: string): { channel: string; text: string } | null {
   const p = e.payload ?? {};
-  const link = boardUrl ? ` — ${boardUrl}/task/${e.object_id}` : "";
-  const decisionLink = boardUrl ? ` — ${boardUrl}/decisions` : "";
+  const link = boardUrl ? ` — ${boardUrl}#task/${e.object_id}` : "";
+  const decisionLink = boardUrl ? ` — ${boardUrl}#decisions` : "";
   switch (e.verb) {
     case "task.created":
       return {
