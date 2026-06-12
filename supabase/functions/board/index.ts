@@ -17,9 +17,15 @@ const api = createClient(
   Deno.env.get("SUPABASE_ANON_KEY")!,
 );
 
+// app_config changes rarely; cache it in the warm instance to avoid one DB
+// round-trip per request (token revocation takes effect within a minute).
+let confCache: { at: number; conf: Record<string, string> } | null = null;
 async function config(): Promise<Record<string, string>> {
+  if (confCache && Date.now() - confCache.at < 60_000) return confCache.conf;
   const { data } = await svc.from("app_config").select("key,value");
-  return Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));
+  const conf = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));
+  confCache = { at: Date.now(), conf };
+  return conf;
 }
 
 async function rpc(fn: string, args: Record<string, unknown>) {

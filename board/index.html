@@ -182,6 +182,12 @@ function render(){
   if(hsh==='board')boardView();else if(hsh==='pulse')pulseView();else decisionsView();
 }
 window.addEventListener('hashchange',render);
-setInterval(function(){if(TOKEN&&location.hash.indexOf('task/')<0)render();},60000);
+// Poll only while the tab is actually visible; refresh instantly on return.
+setInterval(function(){
+  if(TOKEN&&document.visibilityState==='visible'&&location.hash.indexOf('task/')<0)render();
+},60000);
+document.addEventListener('visibilitychange',function(){
+  if(TOKEN&&document.visibilityState==='visible')render();
+});
 render();
 </script></body></html>
