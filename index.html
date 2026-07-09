@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Backbone</title>
+<style>
+:root{--bg:#0e1116;--card:#171c24;--card2:#1d2330;--line:#262d39;--txt:#e6e9ef;--dim:#8b94a7;
+--green:#3fb96a;--amber:#e0a93e;--red:#e0563e;--blue:#4f8ef7;--purple:#9b74f7;}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--txt);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:60px}
+header{position:sticky;top:0;background:rgba(14,17,22,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:8px;align-items:center;z-index:10}
+header h1{font-size:15px;font-weight:700;margin-right:4px;letter-spacing:-.01em}
+nav a{color:var(--dim);text-decoration:none;padding:5px 11px;border-radius:7px;font-size:13.5px;transition:.15s}
+nav a.on{color:var(--txt);background:var(--card)}
+nav a:hover:not(.on){color:var(--txt)}
+#who{margin-left:auto;color:var(--dim);font-size:12px;white-space:nowrap}
+main{max-width:820px;margin:0 auto;padding:14px 14px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:12px 14px;margin-bottom:9px;transition:.15s border-color}
+.card.linked{cursor:pointer}.card.linked:hover{border-color:var(--blue)}
+.card h3{font-size:13.5px;font-weight:600;margin-bottom:3px;line-height:1.35}
+.meta{color:var(--dim);font-size:12px;display:flex;gap:9px;flex-wrap:wrap;margin-top:4px;align-items:center}
+.sec{margin:18px 0 7px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:600}
+.dot{display:inline-block;width:8px;height:8px;border-radius:4px;margin-right:7px;flex-shrink:0}
+.p-urgent{background:var(--red)}.p-high{background:var(--amber)}.p-medium{background:var(--blue)}.p-low{background:var(--dim)}
+.chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11.5px;border:1px solid var(--line);margin:2px 4px 2px 0;color:var(--dim)}
+.chip.ok{color:var(--green);border-color:rgba(63,185,106,.4)}
+.chip.bad{color:var(--red);border-color:rgba(224,86,62,.45)}
+.chip.warn{color:var(--amber);border-color:rgba(224,169,62,.45)}
+/* Deliverable link badge */
+.deliv-link{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:600;
+  background:rgba(79,142,247,.12);border:1px solid rgba(79,142,247,.35);color:var(--blue);text-decoration:none;transition:.15s}
+.deliv-link:hover{background:rgba(79,142,247,.22)}
+.deliv-link svg{width:11px;height:11px;flex-shrink:0}
+/* Inject panel */
+.inject-panel{background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:12px;margin-top:10px}
+.inject-panel h4{font-size:12.5px;color:var(--dim);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:9px 11px;font-size:13.5px;
+  font-family:inherit;resize:vertical;min-height:72px;margin-top:0}
+textarea:focus{outline:none;border-color:var(--blue)}
+button{background:var(--blue);border:0;color:#fff;border-radius:8px;padding:8px 14px;font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s}
+button:active{opacity:.7}
+button.opt{background:var(--card);border:1px solid var(--blue);color:var(--blue);margin:4px 6px 4px 0;padding:7px 12px}
+button.opt:hover{background:rgba(79,142,247,.1)}
+button.ghost{background:transparent;border:1px solid var(--line);color:var(--dim);font-weight:500}
+button.ghost:hover{border-color:var(--txt);color:var(--txt)}
+button.sm{padding:5px 10px;font-size:12.5px}
+.row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.sla{font-weight:700}.sla.late{color:var(--red)}.sla.soon{color:var(--amber)}.sla.fine{color:var(--green)}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+.tl{border-left:2px solid var(--line);margin-left:4px;padding-left:14px}
+.tl div{margin-bottom:10px;font-size:13px}
+.tl time{color:var(--dim);font-size:11.5px;display:block;margin-bottom:1px}
+.tl .inject-event{color:var(--purple);font-weight:500}
+.empty{color:var(--dim);padding:28px;text-align:center;font-size:13.5px}
+#login{max-width:340px;margin:18vh auto;text-align:center}
+pre{white-space:pre-wrap;font-size:12.5px;color:var(--dim);background:var(--bg);border-radius:7px;padding:10px;margin-top:6px;max-height:260px;overflow:auto}
+.kv{font-size:13px;margin:4px 0;line-height:1.4}.kv b{color:var(--dim);font-weight:600;margin-right:6px}
+.badge{display:inline-block;padding:1px 7px;border-radius:5px;font-size:11px;font-weight:600;margin-left:5px}
+.badge.done{background:rgba(63,185,106,.15);color:var(--green)}
+.badge.blocked{background:rgba(224,86,62,.15);color:var(--red)}
+.badge.ready{background:rgba(79,142,247,.15);color:var(--blue)}
+.badge.claimed{background:rgba(224,169,62,.15);color:var(--amber)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:10px 18px;font-size:13.5px;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:99;transition:.3s opacity}
+.toast.hidden{opacity:0;pointer-events:none}
+</style></head><body>
+<header>
+  <h1>🦴 Backbone</h1>
+  <nav>
+    <a href="#decisions" id="n-decisions">Decisions</a>
+    <a href="#board" id="n-board">Board</a>
+    <a href="#pulse" id="n-pulse">Pulse</a>
+  </nav>
+  <span id="who"></span>
+</header>
+<main id="app"></main>
+<div class="toast hidden" id="toast"></div>
+<script>
+var BASE='https://nkpmzpttlajqjykzhmoc.supabase.co/functions/v1/board';
+var qs=new URLSearchParams(location.search);
+if(qs.get('token')){localStorage.setItem('bb_token',qs.get('token'));history.replaceState(null,'',location.pathname+location.hash);}
+var TOKEN=localStorage.getItem('bb_token')||'';
+
+/* ── utils ── */
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function api(action,params){
+  return fetch(BASE,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(Object.assign({token:TOKEN,action:action},params||{}))})
+  .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||r.status);return j;});});
+}
+function ago(h){if(h==null)return'';if(h<1)return Math.round(h*60)+'m';if(h<48)return Math.round(h)+'h';return Math.round(h/24)+'d';}
+function fmtTs(t){if(!t)return'';var d=new Date(t);return d.toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}
+function setNav(v){['decisions','board','pulse'].forEach(function(n){var el=document.getElementById('n-'+n);if(el)el.className=(v===n)?'on':'';});}
+function show(html){document.getElementById('app').innerHTML=html;}
+function toast(msg,ok){var el=document.getElementById('toast');el.textContent=msg;el.className='toast'+(ok===false?' bad':'');setTimeout(function(){el.className='toast hidden';},3000);}
+
+/* ── deliverable link badge ── */
+var ARROW_SVG='<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 6h9M7 3l3 3-3 3"/></svg>';
+var EXT_SVG='<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 2H2v8h8V7M7 1h4v4M7 5l4-4"/></svg>';
+function delivBadge(url,label){
+  if(!url)return'';
+  var l=label||'Open deliverable';
+  return'<a class="deliv-link" href="'+esc(url)+'" target="_blank" onclick="event.stopPropagation()">'+EXT_SVG+' '+esc(l)+'</a>';
+}
+function stateBadge(s){
+  var m={done:'done',blocked:'blocked',ready:'ready',in_production:'claimed'};
+  var k=m[s]||'';return k?'<span class="badge '+k+'">'+esc(s)+'</span>':'<span style="color:var(--dim);font-size:12px">'+esc(s)+'</span>';
+}
+
+/* ── task card (board list) ── */
+function taskRow(t,delivMap){
+  var deliv=delivMap&&delivMap[t.id];
+  return '<div class="card linked" onclick="location.hash=\'task/'+t.id+'\'">'+
+  '<h3><span class="dot p-'+esc(t.priority)+'"></span>'+
+  esc((t.deliverable_spec||'').slice(0,120)+(t.deliverable_spec&&t.deliverable_spec.length>120?'…':''))+
+  stateBadge(t.state)+'</h3>'+
+  '<div class="meta">'+
+  '<span>'+esc(t.type)+'</span>'+
+  (t.claimed_by?'<span>'+esc(t.claimed_by)+'</span>':'<span>unclaimed</span>')+
+  (t.deadline?'<span>due '+fmtTs(t.deadline)+'</span>':'')+
+  (t.external_id?'<span style="opacity:.6">'+esc(t.external_id)+'</span>':'')+
+  '</div>'+
+  (deliv?'<div style="margin-top:7px">'+delivBadge(deliv.drive_url||null,deliv.workspace_path?'📄 '+deliv.workspace_path:null)+'</div>':'')+
+  '</div>';
+}
+
+/* ── decision card ── */
+function decisionCard(d,approver,viewer){
+  var sla=d.sla_remaining_hours,cls=d.escalated||sla<0?'late':(sla<6?'soon':'fine');
+  var h='<div class="card"><h3>'+esc(d.question)+'</h3>'+
+  '<div class="meta"><span>for <b>'+esc(approver)+'</b></span><span>from '+esc(d.opened_by)+'</span>'+
+  '<span>open '+ago(d.age_hours)+'</span><span class="sla '+cls+'">'+
+  (d.escalated?'ESCALATED':(sla<0?Math.abs(Math.round(sla))+'h over SLA':Math.round(sla)+'h left'))+'</span></div>';
+  if(d.artifact_url)h+='<div style="margin-top:8px">'+delivBadge(d.artifact_url,'Review artifact')+'</div>';
+  if(d.default_action)h+='<div class="kv" style="margin-top:6px"><b>default</b>'+esc(d.default_action)+'</div>';
+  if(d.blocking_task_id)h+='<div class="kv"><b>blocks task</b><a href="#task/'+d.blocking_task_id+'">'+d.blocking_task_id.slice(0,8)+'… ↗</a></div>';
+  if(approver===viewer){
+    if(d.options&&d.options.length)h+='<div style="margin-top:8px">'+d.options.map(function(o){
+      return'<button class="opt" onclick="resolveD(\''+d.id+'\',this.dataset.label)" data-label="'+esc(o.label||o)+'">'+esc(o.label||o)+'</button>';}).join('')+'</div>';
+    h+='<textarea id="r-'+d.id+'" placeholder="or type your resolution…" style="margin-top:8px"></textarea>'+
+    '<div class="row"><button onclick="resolveD(\''+d.id+'\',document.getElementById(\'r-'+d.id+'\').value)">Resolve</button>'+
+    (d.blocking_task_id?'<button class="ghost sm" onclick="openInject(\''+d.blocking_task_id+'\')">Inject context into task</button>':'')+
+    '</div>';
+  }
+  return h+'</div>';
+}
+function resolveD(id,resolution){
+  resolution=(resolution||'').trim();if(!resolution){alert('Type or pick a resolution first.');return;}
+  api('resolve',{decision_id:id,resolution:resolution}).then(function(){toast('Decision resolved ✓',true);render();}).catch(function(e){alert(e.message);});
+}
+
+/* ── inject context panel ── */
+var _injectTarget=null;
+function openInject(taskId){
+  _injectTarget=taskId;
+  var el=document.getElementById('inject-panel-global');
+  if(el){el.style.display='block';el.scrollIntoView({behavior:'smooth',block:'center'});}
+  else{location.hash='task/'+taskId;}
+}
+function doInject(taskId,textareaId){
+  var note=(document.getElementById(textareaId).value||'').trim();
+  if(!note){alert('Write a note or context first.');return;}
+  api('inject',{task_id:taskId,note:note}).then(function(){
+    document.getElementById(textareaId).value='';
+    toast('Context injected — agents will see it on next board_query ✓',true);
+    // re-render task view to show updated timeline
+    render();
+  }).catch(function(e){alert(e.message);});
+}
+
+/* ── views ── */
+function loginView(){
+  show('<div id="login" class="card"><h3>Backbone board</h3><p class="meta" style="justify-content:center;margin:8px 0 12px">Paste your access token to continue</p>'+
+  '<textarea id="tok" placeholder="access token" style="min-height:54px"></textarea><div class="row" style="justify-content:center;margin-top:10px"><button onclick="saveTok()">Enter</button></div></div>');
+}
+function saveTok(){TOKEN=(document.getElementById('tok').value||'').trim();localStorage.setItem('bb_token',TOKEN);render();}
+
+function decisionsView(){
+  api('board').then(function(r){
+    document.getElementById('who').textContent=r.viewer;
+    var d=r.board.decisions_by_approver||{},me=d[r.viewer]||[],h='';
+    h+='<div class="sec">Your queue ('+me.length+')</div>';
+    h+=me.length?me.map(function(x){return decisionCard(x,r.viewer,r.viewer);}).join(''):'<div class="empty">Nothing waiting on you ✓</div>';
+    var others=Object.keys(d).filter(function(k){return k!==r.viewer;});
+    others.forEach(function(k){
+      h+='<div class="sec">Waiting on '+esc(k)+' ('+d[k].length+')</div>'+
+      d[k].map(function(x){return decisionCard(x,k,r.viewer);}).join('');
+    });
+    show(h);
+  }).catch(errView);
+}
+
+function boardView(){
+  api('board').then(function(r){
+    document.getElementById('who').textContent=r.viewer;
+    var b=r.board,h='';
+    // cron health
+    h+='<div class="sec">Cron health</div><div style="padding:2px 0">'+(b.cron_health||[]).map(function(c){
+      var cls=c.health==='ok'?'ok':(c.health==='late'||c.health==='failed'?'bad':'warn');
+      return'<span class="chip '+cls+'">'+esc(c.id)+' · '+esc(c.health)+'</span>';}).join('')+'</div>';
+    // programs
+    if((b.programs||[]).length)h+='<div class="sec">Programs</div>'+(b.programs).map(function(p){
+      return'<div class="card"><h3>'+esc(p.name)+'</h3><div class="meta"><span>'+esc(p.type)+'</span><span>'+p.open_tasks+' open tasks</span></div></div>';}).join('');
+    // open data requests
+    var reqs=b.open_requests||[];
+    if(reqs.length)h+='<div class="sec">Open data requests ('+reqs.length+')</div>'+reqs.map(function(q){
+      return'<div class="card"><h3>'+esc(q.request)+'</h3><div class="meta"><span>'+esc(q.type)+'</span><span>'+esc(q.requester)+' → '+esc(q.fulfiller||'anyone')+'</span><span>open '+ago(q.age_hours)+'</span></div></div>';}).join('');
+    // tasks
+    var states=Object.keys(b.tasks_by_state||{});
+    var stateOrder=['blocked','ready','in_production','compiled','queued','done','demo'];
+    states.sort(function(a,bb){var ia=stateOrder.indexOf(a),ib=stateOrder.indexOf(bb);return(ia<0?9:ia)-(ib<0?9:ib);});
+    if(!states.length)h+='<div class="empty">No tasks on the board.</div>';
+    // build deliverable map from pulse (shipped today has drive_urls)
+    // for board view we attach inline_content path when available via pulse
+    var delivMap={};
+    var pulsePromise=api('pulse').then(function(pr){
+      (pr.pulse.completed_deliverables||[]).forEach(function(d){if(d.task_id)delivMap[d.task_id]=d;});
+    }).catch(function(){});
+    pulsePromise.then(function(){
+      states.forEach(function(s){
+        var ts=b.tasks_by_state[s];
+        h+='<div class="sec">'+esc(s)+' ('+ts.length+')</div>'+ts.map(function(t){return taskRow(t,delivMap);}).join('');
+      });
+      show(h);
+    });
+  }).catch(errView);
+}
+
+function taskView(id){
+  api('task',{task_id:id}).then(function(r){
+    document.getElementById('who').textContent=r.viewer;
+    var t=r.task,h='';
+    // header card
+    h+='<div class="card">'+
+    '<h3><span class="dot p-'+esc(t.priority)+'"></span>'+esc(t.deliverable_spec||'')+stateBadge(t.state)+'</h3>';
+    var fields=[['type',t.type],['claimed by',t.claimed_by],
+     ['lease expires',t.lease_expires_at?fmtTs(t.lease_expires_at):null],
+     ['deadline',t.deadline?fmtTs(t.deadline):null],
+     ['output',t.output_location],['created by',t.created_by],
+     ['external id',t.external_id],['wiki page',t.wiki_page],['skill route',t.skill_route]];
+    fields.forEach(function(kv){if(kv[1])h+='<div class="kv"><b>'+kv[0]+'</b>'+esc(kv[1])+'</div>';});
+    if(t.context)h+='<div class="kv"><b>context</b><span style="color:var(--txt)">'+esc(t.context)+'</span></div>';
+    if(t.supersedes_id)h+='<div class="kv"><b>supersedes</b><a href="#task/'+t.supersedes_id+'">'+t.supersedes_id.slice(0,8)+'…</a></div>';
+    if(t.superseded_by)h+='<div class="kv"><b>superseded by</b><a href="#task/'+t.superseded_by+'">'+t.superseded_by.slice(0,8)+'…</a></div>';
+    h+='</div>';
+
+    // deliverables — the main upgrade: prominent link
+    if((r.deliverables||[]).length){
+      h+='<div class="sec">Deliverables ('+r.deliverables.length+')</div>';
+      r.deliverables.forEach(function(d){
+        h+='<div class="card">';
+        h+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">';
+        h+='<span style="font-size:13px;color:var(--dim)">v'+d.version+' · '+esc(d.produced_by)+' · '+fmtTs(d.completed_at)+'</span>';
+        if(d.drive_url)h+=delivBadge(d.drive_url,'Open in Drive / Docs');
+        h+='</div>';
+        if(d.inline_content){
+          // if it looks like a path show it as a copyable workspace path
+          if(d.inline_content.match(/^[\w\/\-\.]+$/)&&d.inline_content.length<200){
+            h+='<div class="kv" style="margin-top:6px"><b>workspace path</b>'+
+            '<code style="background:var(--bg);padding:2px 7px;border-radius:5px;font-size:12.5px">'+esc(d.inline_content)+'</code></div>';
+          } else {
+            h+='<pre>'+esc(d.inline_content.slice(0,800))+(d.inline_content.length>800?'\n…':'')+'</pre>';
+          }
+        }
+        h+='</div>';
+      });
+    }
+
+    // decisions on this task
+    if((r.decisions||[]).length){
+      h+='<div class="sec">Decisions</div>';
+      r.decisions.forEach(function(d){
+        h+='<div class="card"><h3>'+esc(d.question)+'</h3><div class="meta"><span>'+esc(d.approver)+'</span><span>'+
+        (d.resolved_at?'✓ '+esc(d.resolution):'open')+'</span></div>';
+        if(d.artifact_url)h+='<div style="margin-top:6px">'+delivBadge(d.artifact_url,'Review artifact')+'</div>';
+        h+='</div>';
+      });
+    }
+
+    // timeline
+    h+='<div class="sec">Timeline</div><div class="card"><div class="tl">';
+    (r.timeline||[]).forEach(function(e){
+      var isInject=e.verb==='context.injected';
+      var note=(e.payload&&e.payload.note)||'';
+      var injBy=(e.payload&&e.payload.injected_by)||'';
+      h+='<div><time>'+fmtTs(e.ts)+' · '+esc(e.actor)+'</time>';
+      if(isInject){
+        h+='<span class="inject-event">💬 Context from '+esc(injBy||e.actor)+'</span>';
+        if(note)h+='<div style="margin-top:3px;padding:7px 10px;background:rgba(155,116,247,.1);border-radius:7px;font-size:13px;color:var(--txt)">'+esc(note)+'</div>';
+      } else {
+        h+=esc(e.verb)+(e.payload&&e.payload.note?' — '+esc(e.payload.note):'');
+      }
+      h+='</div>';
+    });
+    h+='</div></div>';
+
+    // inject panel — always visible for humans
+    h+='<div class="sec">Inject context or guidance</div>'+
+    '<div class="inject-panel" id="inject-panel-global">'+
+    '<h4>📌 Add context for agents</h4>'+
+    '<p style="font-size:12.5px;color:var(--dim);margin-bottom:8px">'+
+    'Agents see this on their next board_query. Use it to clarify scope, unblock, provide missing info, or correct direction.</p>'+
+    '<textarea id="inject-txt" placeholder="e.g. \'Use the Q2 pricing model, not Q1. The factory decision package scope is Irontown only.\'"></textarea>'+
+    '<div class="row"><button onclick="doInject(\''+id+'\',\'inject-txt\')">Inject into task</button>'+
+    '<button class="ghost sm" onclick="document.getElementById(\'inject-txt\').value=\'\'">Clear</button></div>'+
+    '</div>';
+
+    show(h);
+  }).catch(errView);
+}
+
+function pulseView(){
+  api('pulse').then(function(r){
+    document.getElementById('who').textContent=r.viewer;
+    var p=r.pulse,h='';
+    // shipped deliverables
+    var dv=p.completed_deliverables||[];
+    h+='<div class="sec">Shipped ('+dv.length+')</div>';
+    h+=dv.length?dv.map(function(d){
+      return'<div class="card">'+
+      '<h3>'+esc((d.spec||'').slice(0,100))+'</h3>'+
+      '<div class="meta"><span>'+esc(d.produced_by)+'</span><span>'+fmtTs(d.completed_at)+'</span></div>'+
+      (d.drive_url?'<div style="margin-top:7px">'+delivBadge(d.drive_url,'Open deliverable')+'</div>':'')+
+      (d.task_id?'<div style="margin-top:4px"><a href="#task/'+d.task_id+'" style="font-size:12px;color:var(--dim)">view task ↗</a></div>':'')+
+      '</div>';}).join(''):'<div class="empty">Nothing shipped yet in this window.</div>';
+    // blocked
+    var bn=p.blocked_now||{};
+    if((bn.decisions||[]).length){
+      h+='<div class="sec">Blocked on humans ('+bn.decisions.length+')</div>';
+      bn.decisions.forEach(function(d){
+        h+='<div class="card"><h3>'+esc(d.question)+'</h3>'+
+        '<div class="meta"><span>'+esc(d.approver)+'</span><span>open '+ago(d.age_hours)+'</span>'+
+        (d.escalated?'<span class="sla late">ESCALATED</span>':'')+'</div>'+
+        (d.blocking_task_id?'<div style="margin-top:6px"><a href="#task/'+d.blocking_task_id+'">view blocked task ↗</a> · <button class="ghost sm" onclick="openInject(\''+d.blocking_task_id+'\')">inject context</button></div>':'')+
+        '</div>';
+      });
+    }
+    // events
+    ['major','standard'].forEach(function(sig){
+      var ev=(p.events||{})[sig]||[];if(!ev.length)return;
+      h+='<div class="sec">'+sig+' events ('+ev.length+')</div><div class="card"><div class="tl">'+
+      ev.slice(-40).map(function(e){
+        var isInject=e.verb==='context.injected';
+        return'<div><time>'+fmtTs(e.ts)+' · '+esc(e.actor)+'</time>'+
+        (isInject?'<span class="inject-event">💬 Context injected — '+(e.payload&&e.payload.injected_by?esc(e.payload.injected_by):'')+'</span>':esc(e.verb))+
+        '</div>';}).join('')+'</div></div>';
+    });
+    show(h);
+  }).catch(errView);
+}
+
+function errView(e){
+  if(String(e.message).indexOf('invalid token')>=0){localStorage.removeItem('bb_token');TOKEN='';loginView();}
+  else show('<div class="empty">'+esc(e.message)+'</div>');
+}
+
+function render(){
+  if(!TOKEN){loginView();return;}
+  var hsh=location.hash.replace('#','')||'decisions';
+  if(hsh.indexOf('task/')===0){setNav('');taskView(hsh.slice(5));return;}
+  setNav(hsh);
+  if(hsh==='board')boardView();
+  else if(hsh==='pulse')pulseView();
+  else decisionsView();
+}
+
+window.addEventListener('hashchange',render);
+setInterval(function(){if(TOKEN&&document.visibilityState==='visible'&&location.hash.indexOf('task/')<0)render();},60000);
+document.addEventListener('visibilitychange',function(){if(TOKEN&&document.visibilityState==='visible')render();});
+render();
+</script>
+</body></html>
