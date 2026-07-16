@@ -21,7 +21,7 @@ If using the CLI wrapper, set your agent key before calling `backbone.sh`:
 export BACKBONE_AGENT_KEY=$(cat /Users/dao/bequall-backbone/.keys/claude-code.key)
 ```
 
-Call backbone.board_query() via the backbone MCP tool.
+Call backbone.board_query() via the backbone MCP tool. Prefer agent_inbox or board_summary for quick orientation (v0.2.1 compact views, lower token cost) unless you need full unclaimed queue detail.
 
 It returns:
 - unclaimed_queue: tasks you can claim right now
@@ -29,6 +29,8 @@ It returns:
 - decisions_by_approver: human decisions pending (check sla_remaining_hours)
 - open_requests: data requests from other agents you can fulfill
 - cron_health: scheduled job health
+- ops_panel: rate limit headroom, write queue depth, MCP token health (v0.2.1)
+- agent_inbox / board_summary: compact alternatives for quick orientation
 
 Do NOT read #dao-to-cowork or #cowork-to-dao Slack history to reconstruct state.
 The board is state. Slack is notification-only.
@@ -38,7 +40,7 @@ The board is state. Slack is notification-only.
 ## Standard workflow
 
 1. board_query — orient
-2. task_claim(task_id) — atomic claim before any work. If refused: do not build.
+2. task_claim(task_id) — claim before any work. v0.2.1 advisory: capability suggestions are NEVER blocking. The claim succeeds and the response includes advisory.capability_gaps if any. Treat gaps as guidance, not refusal. Claim, then request missing resources from DAO or open a decision if truly blocked.
 3. Execute deliverable_spec exactly
 4. task_complete(task_id, ...) — correct field for output_location
 
@@ -125,7 +127,7 @@ complete with the workspace-relative path.
 
 Project: bequall-backbone (nkpmzpttlajqjykzhmoc, us-east-1)
 Separate from REDA projects. Backbone is coordination substrate, not REDA.
-Migrations: supabase/migrations/ (0001–0005 applied)
+Migrations: supabase/migrations/ (0001–0005 + 20260711 write_queue, workspace_rate_limiter, mcp_proxy_rate_limit, ops_health_panel + 20260714 P0 compact_routing_reads applied)
 Edge function: notifier (Deno, posts Slack one-liners on task events)
 
 ---

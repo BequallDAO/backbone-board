@@ -42,7 +42,7 @@ Deno.serve(async (req: Request) => {
     // *.supabase.co refuses to serve HTML (anti-phishing); the shell lives on Pages.
     return new Response(null, {
       status: 302,
-      headers: { ...CORS, Location: "https://buildwithbequall.github.io/backbone-board/" },
+      headers: { ...CORS, Location: "https://bequalldao.github.io/backbone-board/" },
     });
   }
   if (req.method !== "POST") return new Response("method not allowed", { status: 405, headers: CORS });
@@ -89,6 +89,20 @@ Deno.serve(async (req: Request) => {
         });
         return json({ viewer: human, result });
       }
+      case "inject": {
+        // Jack injects context or a note into a task's event log so agents can
+        // read it on their next board_query / task_get. Also surfaces on the timeline.
+        if (!body.task_id || !body.note) return json({ error: "task_id and note required" }, 400);
+        const result = await rpc("event_append", {
+          p_agent_key: key,
+          p_verb: "context.injected",
+          p_object_type: "task",
+          p_object_id: String(body.task_id),
+          p_payload: JSON.stringify({ note: body.note, injected_by: human }),
+          p_significance: "major",
+        });
+        return json({ viewer: human, result });
+      }
       default:
         return json({ error: "unknown action" }, 400);
     }
@@ -99,7 +113,7 @@ Deno.serve(async (req: Request) => {
 
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "content-type",
+  "Access-Control-Allow-Headers": "content-type, authorization",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 

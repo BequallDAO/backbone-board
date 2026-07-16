@@ -304,16 +304,16 @@ await test("9 (partial). cron drift — silent cron flagged, heartbeat clears it
   );
 });
 
-await test("extra. capability routing — agent without required capability is refused", async () => {
+await test("extra. capability suggestions — gaps advise but do not block claims", async () => {
   const t = await rpcAs(DAO, "task_create", {
     p_task: mkTask({ external_id: `test-cap-${RUN}`, required_capabilities: ["docx"] }),
   });
-  const refusal = await rpcAs(DAO, "task_claim", { p_task_id: t.task.id }); // dao lacks docx
-  assert(refusal.claimed === false && refusal.reason === "missing_capabilities",
-    "dao must be refused for lack of docx capability");
-  const ok = await rpcAs(COWORK, "task_claim", { p_task_id: t.task.id });
-  assert(ok.claimed === true, "cowork (docx) claims it");
-  await rpcAs(COWORK, "task_release", { p_task_id: t.task.id });
+  const ok = await rpcAs(DAO, "task_claim", { p_task_id: t.task.id }); // dao lacks docx
+  assert(ok.claimed === true, "capability suggestions must not block an otherwise valid claim");
+  assert(ok.advisory.capability_gaps.includes("docx"), "claim response must surface missing suggestions");
+  assert(String(ok.advisory.message).includes("not claim requirements"),
+    "advisory message must explain that gaps are not authorization gates");
+  await rpcAs(DAO, "task_release", { p_task_id: t.task.id });
 });
 
 await test("extra. requests — open/fulfill round-trip with no human gate", async () => {

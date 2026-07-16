@@ -26,6 +26,13 @@ import { tool as cronHeartbeat } from "./tools/cron_heartbeat.js";
 import { tool as boardQuery } from "./tools/board_query.js";
 import { tool as pulseQuery } from "./tools/pulse_query.js";
 import { tool as eventAppend } from "./tools/event_append.js";
+import { tool as writeQueueEnqueue } from "./tools/write_queue_enqueue.js";
+import { tool as writeQueueLease } from "./tools/write_queue_lease.js";
+import { tool as writeQueueAck } from "./tools/write_queue_ack.js";
+import { tool as writeQueueRetry } from "./tools/write_queue_retry.js";
+import { tool as writeQueueStatus } from "./tools/write_queue_status.js";
+import { tool as workspaceRateLimitAcquire } from "./tools/workspace_rate_limit_acquire.js";
+import { tool as workspaceRateLimitStatus } from "./tools/workspace_rate_limit_status.js";
 
 const tools: ToolDef[] = [
   registerAgent,
@@ -45,6 +52,13 @@ const tools: ToolDef[] = [
   cronHeartbeat,
   pulseQuery,
   eventAppend,
+  writeQueueEnqueue,
+  writeQueueLease,
+  writeQueueAck,
+  writeQueueRetry,
+  writeQueueStatus,
+  workspaceRateLimitAcquire,
+  workspaceRateLimitStatus,
   workflowDefine,
   programCreate,
   programQuery,
