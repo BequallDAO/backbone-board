@@ -9,7 +9,8 @@
 *{box-sizing:border-box;margin:0}
 body{background:var(--bg);color:var(--txt);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:60px}
 header{position:sticky;top:0;background:rgba(14,17,22,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:8px;align-items:center;z-index:10}
-header h1{font-size:15px;font-weight:700;margin-right:4px;letter-spacing:-.01em}
+header h1{font-size:15px;font-weight:700;margin-right:4px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.version-pill{display:inline-flex;align-items:center;border:1px solid rgba(79,142,247,.45);color:var(--blue);background:rgba(79,142,247,.12);border-radius:99px;padding:1px 8px;font-size:11px;font-weight:700;letter-spacing:0}
 nav a{color:var(--dim);text-decoration:none;padding:5px 11px;border-radius:7px;font-size:13.5px;transition:.15s}
 nav a.on{color:var(--txt);background:var(--card)}
 nav a:hover:not(.on){color:var(--txt)}
@@ -115,9 +116,17 @@ pre{white-space:pre-wrap;font-size:12.5px;color:var(--dim);background:var(--bg);
 .kb-col.col-done{border-color:rgba(63,185,106,.2)}
 .kb-col.col-queued .kb-col-hdr .title{color:var(--purple)}
 .kb-meta-bar{padding:10px 0 6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ops-banner{background:linear-gradient(135deg,rgba(79,142,247,.18),rgba(63,185,106,.10));border:1px solid rgba(79,142,247,.35);border-radius:10px;padding:13px 14px;margin:0 0 12px;display:grid;grid-template-columns:minmax(210px,1.2fr) repeat(4,minmax(130px,1fr));gap:10px;align-items:center}
+.ops-title{font-size:13px;font-weight:750;line-height:1.3}
+.ops-title span{display:block;color:var(--dim);font-size:11.5px;font-weight:500;margin-top:2px}
+.ops-stat{background:rgba(14,17,22,.45);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:9px 10px;min-height:56px}
+.ops-stat b{display:block;font-size:18px;line-height:1.05;margin-bottom:4px}
+.ops-stat span{display:block;color:var(--dim);font-size:11px;line-height:1.25}
+@media(max-width:900px){.ops-banner{grid-template-columns:1fr 1fr}.ops-title{grid-column:1/-1}}
+@media(max-width:560px){.ops-banner{grid-template-columns:1fr}}
 </style></head><body>
 <header>
-  <h1>🦴 Backbone</h1>
+  <h1>Backbone <span class="version-pill">v0.2.1 live</span></h1>
   <nav>
     <a href="#decisions" id="n-decisions">Decisions</a>
     <a href="#board" id="n-board">Board</a>
@@ -322,22 +331,32 @@ function boardView(){
     (pr.pulse.completed_deliverables||[]).forEach(function(d){if(d.task_id)delivMap[d.task_id]=d;});
 
     var h='';
+    var rate=b.ops_panel&&b.ops_panel.rate_limit;
+    var ops=b.ops_panel&&b.ops_panel.ops_health;
+    var hp=rate&&rate.workspace?Number(rate.workspace.headroom_percent||0):null;
+    var active=ops&&ops.queue?Number(ops.queue.queue_depth_active||0):null;
+    var dead=ops&&ops.queue?Number(ops.queue.queue_depth_dead_letter||0):null;
+    var mcp=ops&&ops.mcp_connections?(ops.mcp_connections||[]).length:null;
+    var burn=ops&&ops.weekly_credit_burn?Number(ops.weekly_credit_burn.mcp_proxy_calls_7d||0):null;
+    h+='<div class="ops-banner">'+
+      '<div class="ops-title">Backbone v0.2.1 ops panel is live<span>P0 compact routing, write queue, workspace rate limiter, MCP token inventory</span></div>'+
+      '<div class="ops-stat"><b>'+(hp==null?'--':Math.round(hp)+'%')+'</b><span>rate headroom</span></div>'+
+      '<div class="ops-stat"><b>'+(active==null?'--':active)+'</b><span>active writes</span></div>'+
+      '<div class="ops-stat"><b>'+(dead==null?'--':dead)+'</b><span>dead-letter writes</span></div>'+
+      '<div class="ops-stat"><b>'+(mcp==null?'--':mcp)+'</b><span>MCP tokens</span></div>'+
+      '<div class="ops-stat"><b>'+(burn==null?'--':burn)+'</b><span>MCP calls, last 7d</span></div>'+
+      '</div>';
 
     // meta bar: cron health + open decisions alert + open requests
     h+='<div class="kb-meta-bar">';
     var cronBad=(b.cron_health||[]).filter(function(c){return c.health!=='ok';});
     var totalDec=Object.values(b.decisions_by_approver||{}).reduce(function(s,a){return s+a.length;},0);
     var totalReq=(b.open_requests||[]).length;
-    var rate=b.ops_panel&&b.ops_panel.rate_limit;
-    var ops=b.ops_panel&&b.ops_panel.ops_health;
     if(rate&&rate.workspace){
-      var hp=Number(rate.workspace.headroom_percent||0);
       var cls=hp<15?'bad':(hp<35?'warn':'ok');
       h+='<span class="chip '+cls+'">rate '+Math.round(hp)+'% headroom · 800/5m usable · 3rps/integration</span>';
     }
     if(ops&&ops.queue){
-      var active=Number(ops.queue.queue_depth_active||0);
-      var dead=Number(ops.queue.queue_depth_dead_letter||0);
       h+='<span class="chip '+(dead?'bad':(active?'warn':'ok'))+'">writes '+active+' active · '+dead+' dead-letter</span>';
     }
     if(ops&&ops.mcp_connections){
@@ -498,4 +517,3 @@ function render(){
 window.addEventListener('hashchange',render);
 render();
 </script></body></html>
-
